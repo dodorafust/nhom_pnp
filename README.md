@@ -1,3 +1,5 @@
+Tên Project: App quản lý tập luyện cá nhân.
+
 Thành Viên:
 Phan Văn Phát - 23017073
 Nguyễn Hoàng Phong - 23010247
