@@ -24,21 +24,20 @@ Hoàng Hải Nam - 23017272
 
 
 
+*Thành viên:* Phong - 23010247
 
-# flutter_application_1
+### 1. Đối tượng đảm nhận: WorkoutSession
+- *Mô tả:* Quản lý một buổi tập cụ thể của người dùng, lưu trữ danh sách các bài tập đã thực hiện và tổng hợp toàn bộ lượng calo tiêu thụ.
+- *Các thuộc tính chính:* 
+  + sessionId (String): Mã định danh buổi tập
+  + date (DateTime): Thời gian diễn ra buổi tập
+  + exercises (List): Danh sách các đối tượng bài tập
+- *Phương thức xử lý logic:* calculateTotalCalories() (Sử dụng vòng lặp duyệt qua danh sách các đối tượng Exercise và gọi hàm liên quan để cộng dồn tổng lượng calo).
 
-A new Flutter project.
+### 2. Sơ đồ thuật toán
+(Sơ đồ Sequence Diagram mô tả quá trình gọi hàm và tương tác giữa các đối tượng để tính tổng calo)
+<img width="724" height="650" alt="Phong" src="https://github.com/user-attachments/assets/f0df1325-bfe9-4fa0-b86b-c5184552e501" />
 
-## Getting Started
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### 3. Link Commit Code
+- https://github.com/dodorafust/nhom_pnp/commit/461c18decf7cacb268c0473ba6c1630b4b909138
