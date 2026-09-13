@@ -5,6 +5,21 @@ Phan Văn Phát - 23017073
 Nguyễn Hoàng Phong - 23010247
 Hoàng Hải Nam - 23017272
 
+## Báo cáo Bài tập thực hành số 2: Lập trình đối tượng Dart
+**Project:** App quản lý tập luyện cá nhân
+**Thành viên:** Phát - 23017073
+
+### 1. Đối tượng đảm nhận: `UserProfile`
+- **Mô tả:** Quản lý thông tin cá nhân của người dùng và tính toán chỉ số khối cơ thể (BMI) để đánh giá tình trạng sức khỏe.
+- **Các thuộc tính chính:** 
+  + `name` (String): Tên người dùng
+  + `weight` (double): Cân nặng (kg)
+  + `height` (double): Chiều cao (mét)
+- **Phương thức xử lý logic:** `calculateBMI()` (Chứa thuật toán tính toán BMI và rẽ nhánh điều kiện để phân loại tình trạng cơ thể).
+
+### 2. Sơ đồ thuật toán
+*(Sơ đồ Activity Diagram mô tả luồng điều kiện phân loại BMI)*
+<img width="480" height="731" alt="image" src="https://github.com/user-attachments/assets/0d2bf802-fa3b-463f-ba61-9d294a514cc6" />
 
 
 
