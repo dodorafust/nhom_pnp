@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'user_profile.dart';
 import 'exercise.dart';
 import 'workout_session.dart';
