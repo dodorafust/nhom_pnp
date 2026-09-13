@@ -1,17 +1,18 @@
-# flutter_application_1
+## Báo cáo Bài tập thực hành số 2: Lập trình đối tượng Dart
+**Project:** App quản lý tập luyện cá nhân
+**Thành viên:** Nam - [Điền Mã sinh viên của Nam]
 
-A new Flutter project.
+### 1. Đối tượng đảm nhận: `Exercise`
+- **Mô tả:** Định nghĩa chi tiết dữ liệu về một bài tập đơn lẻ trong hệ thống và cung cấp phép tính tiêu hao năng lượng.
+- **Các thuộc tính chính:** 
+  + `exerciseName` (String): Tên bài tập
+  + `durationInMinutes` (int): Thời lượng tập (phút)
+  + `caloriesPerMinute` (double): Lượng calo đốt cháy mỗi phút
+- **Phương thức xử lý logic:** `getBurnedCalories()` (Thuật toán nhân các chỉ số để tính ra tổng năng lượng tiêu thụ của riêng bài tập này).
 
-## Getting Started
+### 2. Sơ đồ thuật toán
+*(Sơ đồ Activity Diagram mô tả luồng tính toán calo)*
+![Activity Diagram - Exercise](link-anh-chup-so-do-cua-Nam-tren-github-hoac-imgur)
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### 3. Link Commit Code
+- [Link đến file exercise.dart trên GitHub của nhóm]
