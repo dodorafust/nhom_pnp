@@ -1,19 +1,15 @@
-class WorkoutSession {
-  String sessionId;
-  DateTime date;
-  List<Exercise> exercises = [];
+class Exercise {
+  String exerciseName;
+  int durationInMinutes;
+  double caloriesPerMinute;
 
-  WorkoutSession({required this.sessionId, required this.date});
+  Exercise({
+    required this.exerciseName,
+    required this.durationInMinutes,
+    required this.caloriesPerMinute,
+  });
 
-  void addExercise(Exercise exercise) {
-    exercises.add(exercise);
+  double getBurnedCalories() {
+    return durationInMinutes * caloriesPerMinute;
   }
-
-  // Thuật toán lặp tính tổng calo cho cả buổi tập
-  double calculateTotalCalories() {
-    double total = 0.0;
-    for (var exercise in exercises) {
-      total += exercise.getBurnedCalories();
-    }
-    return total;
-  }
+}
