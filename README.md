@@ -39,8 +39,6 @@ Hoàng Hải Nam - 23017272
 <img width="724" height="650" alt="Phong" src="https://github.com/user-attachments/assets/f0df1325-bfe9-4fa0-b86b-c5184552e501" />
 
 
-### 3. Link Commit Code
-- https://github.com/dodorafust/nhom_pnp/commit/461c18decf7cacb268c0473ba6c1630b4b909138
 
 ## Báo cáo Bài tập: Thiết kế Wireframe và Xây dựng UI
 **Dự án:** App quản lý tập luyện cá nhân[cite: 7]
@@ -67,5 +65,3 @@ Dựa trên kiến trúc UI đã chốt, mỗi sinh viên đảm nhận phát tr
 ### Yêu cầu 4: Commit code vào repo chung
 - Các thành viên đã hoàn thành việc code giao diện được giao và thực hiện đẩy (push) mã nguồn lên kho lưu trữ chung của nhóm.
 - Cấu trúc thư mục được tổ chức hợp lý, tách biệt giữa file điều hướng chính (`main.dart`), các giao diện màn hình (`screens/`) và mô hình dữ liệu (`models/`).
-- **Link thư mục Code chính:** [Dán link dẫn tới thư mục chứa code giao diện trên GitHub vào đây]
-- **Link lịch sử Commit:** [Dán link trang Commit History của repo để minh chứng quá trình làm việc của 3 thành viên]
