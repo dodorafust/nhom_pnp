@@ -1,11 +1,10 @@
 class UserProfile {
   String name;
-  double weight; // kg
-  double height; // mét
+  double weight;
+  double height;
 
   UserProfile({required this.name, required this.weight, required this.height});
 
-  // Thuật toán tính BMI và phân loại
   String calculateBMI() {
     if (height <= 0 || weight <= 0) return "Dữ liệu không hợp lệ";
     
