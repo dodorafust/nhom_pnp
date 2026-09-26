@@ -1,21 +1,69 @@
-import 'user_profile.dart';
-import 'exercise.dart';
-import 'workout_session.dart';
+import 'package:flutter/material.dart';
 
-void main() {
-  UserProfile user = UserProfile(name: "Phát", weight: 70, height: 1.75);
-  print("--- KẾT QUẢ CỦA PHÁT ---");
-  print("Người dùng: ${user.name}");
-  print(user.calculateBMI());
+import 'screens/exercise_screen.dart';
+import 'screens/workout_screen.dart';
+import 'screens/profile_screen.dart';
 
-  Exercise pushUp = Exercise(exerciseName: "Hít đất", durationInMinutes: 15, caloriesPerMinute: 8.5);
-  Exercise running = Exercise(exerciseName: "Chạy bộ", durationInMinutes: 30, caloriesPerMinute: 10.0);
-  print("\n--- KẾT QUẢ CỦA NAM ---");
-  print("Bài tập: \({pushUp.exerciseName} - Tiêu hao:\){pushUp.getBurnedCalories()} calo");
+void main() => runApp(const FitnessApp());
 
-  WorkoutSession session = WorkoutSession(sessionId: "SS001", date: DateTime.now());
-  session.addExercise(pushUp);
-  session.addExercise(running);
-  print("\n--- KẾT QUẢ CỦA PHONG ---");
-  print("Tổng calo buổi tập (Hít đất + Chạy bộ): ${session.calculateTotalCalories()} calo");
+class FitnessApp extends StatelessWidget {
+  const FitnessApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: MainNavigator(),
+    );
+  }
+}
+
+class MainNavigator extends StatefulWidget {
+  const MainNavigator({super.key});
+
+  @override
+  State createState() => _MainNavigatorState();
+}
+
+class _MainNavigatorState extends State {
+  int _selectedIndex = 0;
+
+  // Danh sách 3 màn hình tương ứng với 3 tab
+  static const List _widgetOptions = [
+    ExerciseScreen(),
+    WorkoutScreen(),
+    ProfileScreen(),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _widgetOptions.elementAt(_selectedIndex),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list),
+            label: 'Bài tập',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.fitness_center),
+            label: 'Buổi tập',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Hồ sơ',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.teal,
+        onTap: _onItemTapped,
+      ),
+    );
+  }
 }
