@@ -28,7 +28,6 @@ class MainNavigator extends StatefulWidget {
 class _MainNavigatorState extends State {
   int _selectedIndex = 0;
 
-  // Danh sách 3 màn hình tương ứng với 3 tab
   static const List _widgetOptions = [
     ExerciseScreen(),
     WorkoutScreen(),
