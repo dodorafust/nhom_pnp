@@ -1,23 +1,35 @@
-class UserProfile {
-  String name;
-  double weight;
-  double height;
+// File: lib/models/user_profile.dart
+import 'base_entity.dart';
 
-  UserProfile({required this.name, required this.weight, required this.height});
+class UserProfile extends BaseEntity<String> {
+  final double weight; // kg
+  final double height; // mét
+
+  const UserProfile({
+    required super.id,
+    required super.name,
+    required super.description,
+    required this.weight,
+    required this.height,
+  });
+
+  double get bmiValue => weight / (height * height);
 
   String calculateBMI() {
-    if (height <= 0 || weight <= 0) return "Dữ liệu không hợp lệ";
-    
-    double bmi = weight / (height * height);
-    String status;
-    
+    final bmi = bmiValue;
     if (bmi < 18.5) {
-      status = "Thiếu cân";
-    } else if (bmi >= 18.5 && bmi < 24.9) {
-      status = "Bình thường";
+      return 'BMI: ${bmi.toStringAsFixed(1)} (Thiếu cân)';
+    } else if (bmi < 24.9) {
+      return 'BMI: ${bmi.toStringAsFixed(1)} (Bình thường)';
+    } else if (bmi < 29.9) {
+      return 'BMI: ${bmi.toStringAsFixed(1)} (Thừa cân)';
     } else {
-      status = "Thừa cân";
+      return 'BMI: ${bmi.toStringAsFixed(1)} (Béo phì)';
     }
-    return "BMI: \({bmi.toStringAsFixed(1)} -\)status";
+  }
+
+  @override
+  String getDetailInfo() {
+    return 'Cân nặng: ${weight}kg | Chiều cao: ${height}m | ${calculateBMI()}';
   }
 }

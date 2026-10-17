@@ -1,5 +1,5 @@
+// File: lib/main.dart
 import 'package:flutter/material.dart';
-
 import 'screens/exercise_screen.dart';
 import 'screens/workout_screen.dart';
 import 'screens/profile_screen.dart';
@@ -22,14 +22,13 @@ class MainNavigator extends StatefulWidget {
   const MainNavigator({super.key});
 
   @override
-  State createState() => _MainNavigatorState();
+  State<MainNavigator> createState() => _MainNavigatorState();
 }
 
-class _MainNavigatorState extends State {
+class _MainNavigatorState extends State<MainNavigator> {
   int _selectedIndex = 0;
 
-  // Danh sách 3 màn hình tương ứng với 3 tab
-  static const List _widgetOptions = [
+  static const List<Widget> _widgetOptions = <Widget>[
     ExerciseScreen(),
     WorkoutScreen(),
     ProfileScreen(),
@@ -46,7 +45,7 @@ class _MainNavigatorState extends State {
     return Scaffold(
       body: _widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
-        items: const [
+        items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.list),
             label: 'Bài tập',
