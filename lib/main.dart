@@ -28,7 +28,11 @@ class MainNavigator extends StatefulWidget {
 class _MainNavigatorState extends State<MainNavigator> {
   int _selectedIndex = 0;
 
+<<<<<<< HEAD
   static const List<Widget> _widgetOptions = <Widget>[
+=======
+  static const List _widgetOptions = [
+>>>>>>> b6a109e4f7a4144f88c713f71b17b9b82ccededa
     ExerciseScreen(),
     WorkoutScreen(),
     ProfileScreen(),
