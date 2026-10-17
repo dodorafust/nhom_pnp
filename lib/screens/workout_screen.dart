@@ -4,11 +4,19 @@ class WorkoutScreen extends StatefulWidget {
   const WorkoutScreen({super.key});
 
   @override
+<<<<<<< HEAD
   State createState() => _WorkoutScreenState();
 }
 
 class _WorkoutScreenState extends State {
   int _exerciseCount = 0;
+=======
+  State<WorkoutScreen> createState() => _WorkoutScreenState();
+}
+
+class _WorkoutScreenState extends State<WorkoutScreen> {
+  int _exerciseCount = 0; // Tái sử dụng biến đếm[cite: 7]
+>>>>>>> 8760652617de1213122ce63379f4c0003865264b
   final int _totalExercises = 7;
 
   @override
@@ -21,10 +29,18 @@ class _WorkoutScreenState extends State {
           const Text('NỘI DUNG CHÍNH', style: TextStyle(fontSize: 12, color: Colors.grey)),
           const Text('Buổi tập hôm nay', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
+<<<<<<< HEAD
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: const Color(0xFF1B2F2A),
+=======
+          // Khối giao diện hiển thị tiến trình
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1B2F2A), // Màu xanh đen như bản thiết kế
+>>>>>>> 8760652617de1213122ce63379f4c0003865264b
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -51,6 +67,10 @@ class _WorkoutScreenState extends State {
             ),
           ),
           const SizedBox(height: 32),
+<<<<<<< HEAD
+=======
+          // Nút bấm tăng biến đếm
+>>>>>>> 8760652617de1213122ce63379f4c0003865264b
           Center(
             child: ElevatedButton.icon(
               onPressed: () {
