@@ -1,21 +1,29 @@
+// File: lib/models/workout_session.dart
+import 'base_entity.dart';
 import 'exercise.dart';
 
-class WorkoutSession {
-  String sessionId;
-  DateTime date;
-  List exercises = [];
+class WorkoutSession extends BaseEntity<int> {
+  final String date;
+  final List<Exercise> exercises;
 
-  WorkoutSession({required this.sessionId, required this.date});
+  const WorkoutSession({
+    required super.id,
+    required super.name,
+    required super.description,
+    required this.date,
+    required this.exercises,
+  });
 
-  void addExercise(Exercise exercise) {
-    exercises.add(exercise);
-  }
-
-  double calculateTotalCalories() {
-    double total = 0.0;
-    for (var exercise in exercises) {
-      total += exercise.getBurnedCalories();
+  double getTotalSessionCalories() {
+    double total = 0;
+    for (var ex in exercises) {
+      total += ex.getBurnedCalories();
     }
     return total;
+  }
+
+  @override
+  String getDetailInfo() {
+    return 'Ngày: $date | Số bài tập: ${exercises.length} | Tổng: ${getTotalSessionCalories().toStringAsFixed(1)} kcal';
   }
 }
