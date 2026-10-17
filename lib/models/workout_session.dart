@@ -1,4 +1,3 @@
-// File: lib/models/workout_session.dart
 import 'base_entity.dart';
 import 'exercise.dart';
 
