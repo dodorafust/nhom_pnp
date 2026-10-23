@@ -1,6 +1,7 @@
 // File: lib/screens/profile_screen.dart
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
+import '../services/database_service.dart';
 import '../widgets/base_screen_layout.dart';
 
 class ProfileScreen extends BaseScreenLayout<UserProfile> {
@@ -8,6 +9,7 @@ class ProfileScreen extends BaseScreenLayout<UserProfile> {
   final bool isDarkMode;
   final VoidCallback onToggleTheme;
   final VoidCallback onProfileUpdated;
+  final VoidCallback onLogout;
 
   const ProfileScreen({
     super.key,
@@ -15,6 +17,7 @@ class ProfileScreen extends BaseScreenLayout<UserProfile> {
     required this.isDarkMode,
     required this.onToggleTheme,
     required this.onProfileUpdated,
+    required this.onLogout,
   });
 
   @override
@@ -25,6 +28,35 @@ class ProfileScreen extends BaseScreenLayout<UserProfile> {
 
   @override
   UserProfile get screenData => userProfile;
+
+  void _confirmLogout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Xác nhận Đăng xuất'),
+        content: Text(
+          'Bạn có chắc chắn muốn đăng xuất khỏi tài khoản "${userProfile.username}" không?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              onLogout();
+            },
+            child: const Text('Đăng xuất'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   List<Widget>? buildAppBarActions(BuildContext context) {
@@ -37,6 +69,11 @@ class ProfileScreen extends BaseScreenLayout<UserProfile> {
         ),
         tooltip: 'Đổi giao diện Sáng/Tối',
       ),
+      IconButton(
+        onPressed: () => _confirmLogout(context),
+        icon: const Icon(Icons.logout, color: Colors.white),
+        tooltip: 'Đăng xuất tài khoản',
+      ),
     ];
   }
 
@@ -47,14 +84,7 @@ class ProfileScreen extends BaseScreenLayout<UserProfile> {
         const CircleAvatar(
           radius: 30,
           backgroundColor: Colors.white,
-          child: Text(
-            'PNP',
-            style: TextStyle(
-              color: Colors.teal,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
-          ),
+          child: Icon(Icons.person, size: 32, color: Colors.teal),
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -71,7 +101,7 @@ class ProfileScreen extends BaseScreenLayout<UserProfile> {
               ),
               const SizedBox(height: 4),
               Text(
-                data.formatExtraNote<String>('Thành viên Active - Cấp 12'),
+                data.formatExtraNote<String>('Tài khoản: @${data.username}'),
                 style: const TextStyle(color: Colors.white70, fontSize: 13),
               ),
             ],
@@ -86,6 +116,7 @@ class ProfileScreen extends BaseScreenLayout<UserProfile> {
     return _InteractiveProfileBody(
       profile: data,
       onProfileUpdated: onProfileUpdated,
+      onLogoutPressed: () => _confirmLogout(context),
     );
   }
 }
@@ -93,10 +124,12 @@ class ProfileScreen extends BaseScreenLayout<UserProfile> {
 class _InteractiveProfileBody extends StatefulWidget {
   final UserProfile profile;
   final VoidCallback onProfileUpdated;
+  final VoidCallback onLogoutPressed;
 
   const _InteractiveProfileBody({
     required this.profile,
     required this.onProfileUpdated,
+    required this.onLogoutPressed,
   });
 
   @override
@@ -119,7 +152,7 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
     _bmiResult = widget.profile.calculateBMI();
   }
 
-  void _onCalculatePressed() {
+  Future<void> _onCalculatePressed() async {
     final h = double.tryParse(_heightController.text);
     final w = double.tryParse(_weightController.text);
 
@@ -129,12 +162,29 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
         widget.profile.weight = w;
         _bmiResult = widget.profile.calculateBMI();
       });
+      await DatabaseService.updateUserProfile(widget.profile);
       widget.onProfileUpdated();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Đã tính BMI và lưu thông tin vào Database!'),
+          backgroundColor: Colors.teal,
+        ),
+      );
     } else {
       setState(() {
         _bmiResult = 'Vui lòng nhập chiều cao (m) và cân nặng (kg) hợp lệ';
       });
     }
+  }
+
+  Future<void> _updateWater(int delta) async {
+    final nextVal = widget.profile.waterGlasses + delta;
+    if (nextVal < 0) return;
+    setState(() {
+      widget.profile.waterGlasses = nextVal;
+    });
+    await DatabaseService.updateUserProfile(widget.profile);
   }
 
   @override
@@ -219,7 +269,7 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
                     onPressed: _onCalculatePressed,
                     icon: const Icon(Icons.calculate),
                     label: const Text(
-                      'Tính chỉ số BMI',
+                      'Tính chỉ số BMI & Lưu Database',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -253,7 +303,7 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
         ),
         const SizedBox(height: 16),
 
-        // 2. Khối theo dõi lượng nước uống trong ngày (Water Tracker)
+        // 2. Khối theo dõi lượng nước uống trong ngày
         Card(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           elevation: 2,
@@ -293,19 +343,13 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     OutlinedButton.icon(
-                      onPressed: () {
-                        if (widget.profile.waterGlasses > 0) {
-                          setState(() => widget.profile.waterGlasses--);
-                        }
-                      },
+                      onPressed: () => _updateWater(-1),
                       icon: const Icon(Icons.remove, size: 18),
                       label: const Text('Bớt 1 cốc'),
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton.icon(
-                      onPressed: () {
-                        setState(() => widget.profile.waterGlasses++);
-                      },
+                      onPressed: () => _updateWater(1),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
@@ -321,39 +365,25 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
         ),
         const SizedBox(height: 16),
 
-        // 3. Khối thông tin thành viên nhóm nhom_pnp
-        Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          elevation: 2,
-          child: const Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Thành viên thực hiện (Repo: dodorafust/nhom_pnp)',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                ),
-                Divider(),
-                ListTile(
-                  dense: true,
-                  leading: Icon(Icons.person_pin, color: Colors.teal),
-                  title: Text('Phan Văn Phát - MSSV: 23017073'),
-                  subtitle: Text('Phụ trách: UserProfile & Màn hình Hồ sơ BMI'),
-                ),
-                ListTile(
-                  dense: true,
-                  leading: Icon(Icons.person_pin, color: Colors.teal),
-                  title: Text('Nguyễn Hoàng Phong - MSSV: 23010247'),
-                  subtitle: Text('Phụ trách: WorkoutSession & Màn hình Buổi tập'),
-                ),
-                ListTile(
-                  dense: true,
-                  leading: Icon(Icons.person_pin, color: Colors.teal),
-                  title: Text('Hoàng Hải Nam - MSSV: 23017272'),
-                  subtitle: Text('Phụ trách: Exercise & Màn hình Bài tập'),
-                ),
-              ],
+        // 3. Nút Đăng xuất tài khoản nổi bật ở cuối trang Hồ sơ
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: widget.onLogoutPressed,
+            icon: const Icon(Icons.logout, color: Colors.redAccent),
+            label: const Text(
+              'ĐĂNG XUẤT TÀI KHOẢN',
+              style: TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: Colors.redAccent, width: 1.5),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
         ),

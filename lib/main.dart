@@ -7,8 +7,12 @@ import 'screens/auth_screen.dart';
 import 'screens/exercise_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/workout_screen.dart';
+import 'services/database_service.dart';
 
-void main() => runApp(const FitnessApp());
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const FitnessApp());
+}
 
 class FitnessApp extends StatefulWidget {
   const FitnessApp({super.key});
@@ -19,10 +23,34 @@ class FitnessApp extends StatefulWidget {
 
 class _FitnessAppState extends State<FitnessApp> {
   bool _isDarkMode = false;
-  bool _isAuthenticated = false;
+  UserProfile? _currentUser;
+  bool _isCheckingSession = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedSession();
+  }
+
+  Future<void> _loadSavedSession() async {
+    final savedUser = await DatabaseService.getCurrentLoggedInUser();
+    if (!mounted) return;
+    setState(() {
+      _currentUser = savedUser;
+      _isCheckingSession = false;
+    });
+  }
 
   void _toggleTheme() {
     setState(() => _isDarkMode = !_isDarkMode);
+  }
+
+  Future<void> _handleLogout() async {
+    await DatabaseService.logout();
+    if (!mounted) return;
+    setState(() {
+      _currentUser = null;
+    });
   }
 
   @override
@@ -42,26 +70,38 @@ class _FitnessAppState extends State<FitnessApp> {
         ),
         useMaterial3: true,
       ),
-      home: _isAuthenticated
-          ? MainNavigator(
-              isDarkMode: _isDarkMode,
-              onToggleTheme: _toggleTheme,
+      home: _isCheckingSession
+          ? const Scaffold(
+              body: Center(child: CircularProgressIndicator(color: Colors.teal)),
             )
-          : AuthScreen(
-              onLoginSuccess: () => setState(() => _isAuthenticated = true),
-            ),
+          : _currentUser != null
+              ? MainNavigator(
+                  currentUser: _currentUser!,
+                  isDarkMode: _isDarkMode,
+                  onToggleTheme: _toggleTheme,
+                  onLogout: _handleLogout,
+                )
+              : LoginScreen(
+                  onLoginSuccess: (loggedInUser) {
+                    setState(() => _currentUser = loggedInUser);
+                  },
+                ),
     );
   }
 }
 
 class MainNavigator extends StatefulWidget {
+  final UserProfile currentUser;
   final bool isDarkMode;
   final VoidCallback onToggleTheme;
+  final VoidCallback onLogout;
 
   const MainNavigator({
     super.key,
+    required this.currentUser,
     required this.isDarkMode,
     required this.onToggleTheme,
+    required this.onLogout,
   });
 
   @override
@@ -71,7 +111,6 @@ class MainNavigator extends StatefulWidget {
 class _MainNavigatorState extends State<MainNavigator> {
   int _selectedIndex = 0;
 
-  // Dữ liệu bài tập khởi tạo ban đầu
   final List<Exercise> _allExercises = [
     Exercise(
       id: 'EX01',
@@ -121,13 +160,6 @@ class _MainNavigatorState extends State<MainNavigator> {
   ];
 
   late final WorkoutSession _currentSession;
-  final UserProfile _userProfile = UserProfile(
-    id: '23017073',
-    name: 'Phan Văn Phát',
-    description: 'Mục tiêu: Duy trì thể lực & săn chắc cơ bắp',
-    weight: 68.0,
-    height: 1.72,
-  );
 
   @override
   void initState() {
@@ -170,10 +202,11 @@ class _MainNavigatorState extends State<MainNavigator> {
         onSessionUpdated: () => setState(() {}),
       ),
       ProfileScreen(
-        userProfile: _userProfile,
+        userProfile: widget.currentUser,
         isDarkMode: widget.isDarkMode,
         onToggleTheme: widget.onToggleTheme,
         onProfileUpdated: () => setState(() {}),
+        onLogout: widget.onLogout,
       ),
     ];
 
