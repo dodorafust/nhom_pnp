@@ -8,7 +8,7 @@ class ExerciseScreen extends BaseScreenLayout<EntityCollection<Exercise>> {
   const ExerciseScreen({super.key});
 
   @override
-  String get screenTitle => 'Danh sách Bài tập (Nam)';
+  String get screenTitle => 'Danh sách Bài tập';
 
   @override
   IconData get screenIcon => Icons.list_alt;

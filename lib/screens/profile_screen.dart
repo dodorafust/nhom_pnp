@@ -7,7 +7,7 @@ class ProfileScreen extends BaseScreenLayout<UserProfile> {
   const ProfileScreen({super.key});
 
   @override
-  String get screenTitle => 'Hồ sơ Cá nhân (Phát)';
+  String get screenTitle => 'Hồ sơ Cá nhân';
 
   @override
   IconData get screenIcon => Icons.person;

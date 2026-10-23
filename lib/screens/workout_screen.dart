@@ -8,7 +8,7 @@ class WorkoutScreen extends BaseScreenLayout<WorkoutSession> {
   const WorkoutScreen({super.key});
 
   @override
-  String get screenTitle => 'Quản lý Buổi tập (Phong)';
+  String get screenTitle => 'Quản lý Buổi tập';
 
   @override
   IconData get screenIcon => Icons.fitness_center;
