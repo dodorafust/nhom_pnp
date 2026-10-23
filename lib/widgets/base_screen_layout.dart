@@ -1,48 +1,65 @@
+// File: lib/widgets/base_screen_layout.dart
 import 'package:flutter/material.dart';
 
 abstract class BaseScreenLayout<T> extends StatelessWidget {
   const BaseScreenLayout({super.key});
 
-  // Các thuộc tính và phương thức bắt buộc lớp con (Screen) phải định nghĩa khi kế thừa
   String get screenTitle;
   IconData get screenIcon;
   T get screenData;
 
-  // Xây dựng phần tóm tắt đầu trang dựa trên kiểu dữ liệu Generic T
+  List<Widget>? buildAppBarActions(BuildContext context) => null;
+
   Widget buildHeaderContent(BuildContext context, T data);
 
-  // Xây dựng nội dung chính của trang dựa trên kiểu dữ liệu Generic T
   Widget buildMainContent(BuildContext context, T data);
 
-  // Generic method hỗ trợ tạo nhanh thẻ thông tin (Card + ListTile) dùng chung cho các màn hình
+  // Generic method dựng nhanh thẻ thông tin chuẩn Material Design
   Widget buildGenericItemCard<E>({
     required E item,
     required IconData leadingIcon,
     required String title,
     required String subtitle,
     required String trailingText,
+    VoidCallback? onTap,
+    Widget? trailingWidget,
   }) {
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         leading: CircleAvatar(
-          backgroundColor: Colors.teal.shade50,
+          radius: 22,
+          backgroundColor: Colors.teal.withValues(alpha: 0.12),
           child: Icon(leadingIcon, color: Colors.teal),
         ),
         title: Text(
           title,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
         ),
-        subtitle: Text(subtitle),
-        trailing: Text(
-          trailingText,
-          style: const TextStyle(
-            color: Colors.teal,
-            fontWeight: FontWeight.w600,
-          ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4.0),
+          child: Text(subtitle, style: const TextStyle(fontSize: 13)),
         ),
+        trailing: trailingWidget ??
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.teal.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                trailingText,
+                style: const TextStyle(
+                  color: Colors.teal,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ),
       ),
     );
   }
@@ -52,31 +69,58 @@ abstract class BaseScreenLayout<T> extends StatelessWidget {
     final T data = screenData;
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         leading: Icon(screenIcon, color: Colors.white),
         title: Text(
           screenTitle,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 19,
+          ),
         ),
         backgroundColor: Colors.teal,
-        elevation: 2,
+        elevation: 0,
+        actions: buildAppBarActions(context),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Khối Header chung cho mọi màn hình
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.teal.shade700,
-                borderRadius: BorderRadius.circular(12),
+            // Khối Header kết hợp Card + Stack + Gradient
+            Card(
+              elevation: 4,
+              clipBehavior: Clip.antiAlias,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-              child: buildHeaderContent(context, data),
+              child: Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.teal.shade800, Colors.teal.shade500],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    padding: const EdgeInsets.all(18.0),
+                    child: buildHeaderContent(context, data),
+                  ),
+                  Positioned(
+                    right: -15,
+                    top: -15,
+                    child: Icon(
+                      screenIcon,
+                      size: 100,
+                      color: Colors.white.withValues(alpha: 0.08),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
             // Khối Nội dung chính của từng màn hình
             buildMainContent(context, data),
           ],

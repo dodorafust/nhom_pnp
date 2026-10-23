@@ -2,30 +2,43 @@
 import 'base_entity.dart';
 
 class UserProfile extends BaseEntity<String> {
-  final double weight; // kg
-  final double height; // mét
+  double weight; // kg
+  double height; // mét
+  int waterGlasses; // Số cốc nước đã uống trong ngày
+  int dailyCalorieGoal;
 
-  const UserProfile({
-    required super.id,
+  UserProfile({
+    super.id = '23017073',
     required super.name,
-    required super.description,
+    super.description = 'Mục tiêu: Săn chắc cơ bắp & duy trì thể lực',
     required this.weight,
     required this.height,
+    this.waterGlasses = 4,
+    this.dailyCalorieGoal = 500,
   });
 
-  double get bmiValue => weight / (height * height);
+  double get bmiValue {
+    if (height <= 0 || weight <= 0) return 0;
+    return weight / (height * height);
+  }
 
+  // Thuật toán tính BMI và rẽ nhánh phân loại tình trạng cơ thể
   String calculateBMI() {
+    if (height <= 0 || weight <= 0) return 'Dữ liệu không hợp lệ';
+
     final bmi = bmiValue;
+    String status;
+
     if (bmi < 18.5) {
-      return 'BMI: ${bmi.toStringAsFixed(1)} (Thiếu cân)';
+      status = 'Thiếu cân (Cần bổ sung dinh dưỡng)';
     } else if (bmi < 24.9) {
-      return 'BMI: ${bmi.toStringAsFixed(1)} (Bình thường)';
+      status = 'Bình thường (Thể trạng lý tưởng)';
     } else if (bmi < 29.9) {
-      return 'BMI: ${bmi.toStringAsFixed(1)} (Thừa cân)';
+      status = 'Thừa cân (Nên tăng cường Cardio)';
     } else {
-      return 'BMI: ${bmi.toStringAsFixed(1)} (Béo phì)';
+      status = 'Béo phì (Cần lộ trình giảm mỡ chuyên sâu)';
     }
+    return 'BMI: ${bmi.toStringAsFixed(1)} - $status';
   }
 
   @override
