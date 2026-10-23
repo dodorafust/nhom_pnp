@@ -5,75 +5,496 @@ import '../models/exercise.dart';
 import '../widgets/base_screen_layout.dart';
 
 class ExerciseScreen extends BaseScreenLayout<EntityCollection<Exercise>> {
-  const ExerciseScreen({super.key});
+  final List<Exercise> exercises;
+  final ValueChanged<Exercise> onAddExercise;
+  final ValueChanged<Exercise> onSendToWorkout;
+
+  const ExerciseScreen({
+    super.key,
+    required this.exercises,
+    required this.onAddExercise,
+    required this.onSendToWorkout,
+  });
 
   @override
-  String get screenTitle => 'Danh sách Bài tập';
+  String get screenTitle => 'Thư viện Bài tập (Nam)';
 
   @override
   IconData get screenIcon => Icons.list_alt;
 
   @override
-  EntityCollection<Exercise> get screenData => EntityCollection<Exercise>(
-        items: const [
-          Exercise(
-            id: 'EX01',
-            name: 'Chạy bộ buổi sáng',
-            description: 'Tăng cường sức bền tim mạch',
-            durationInMinutes: 30,
-            caloriesPerMinute: 10.5,
-          ),
-          Exercise(
-            id: 'EX02',
-            name: 'Hít đất nâng cao',
-            description: 'Phát triển cơ ngực và tay sau',
-            durationInMinutes: 15,
-            caloriesPerMinute: 8.0,
-          ),
-          Exercise(
-            id: 'EX03',
-            name: 'Plank siết cơ bụng',
-            description: 'Giữ thẳng lưng và siết chặt cơ trọng tâm',
-            durationInMinutes: 10,
-            caloriesPerMinute: 6.5,
-          ),
-        ],
-      );
+  EntityCollection<Exercise> get screenData =>
+      EntityCollection<Exercise>(items: exercises);
 
   @override
-  Widget buildHeaderContent(BuildContext context, EntityCollection<Exercise> data) {
+  Widget buildHeaderContent(
+      BuildContext context, EntityCollection<Exercise> data) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'THƯ VIỆN BÀI TẬP',
-          style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.amber,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: const Text(
+            'HOT • THỬ THÁCH 30 NGÀY',
+            style: TextStyle(
+              color: Colors.black87,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Tổng số bài tập: ${data.totalCount} bài',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 4),
-        Text(
-          'Tổng số bài tập hiện có: ${data.totalCount} bài',
-          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+        const Text(
+          'Chạm vào từng bài tập để xem hướng dẫn, đánh giá sao hoặc thêm vào buổi tập hôm nay.',
+          style: TextStyle(color: Colors.white70, fontSize: 13),
         ),
       ],
     );
   }
 
   @override
-  Widget buildMainContent(BuildContext context, EntityCollection<Exercise> data) {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: data.items.length,
-      itemBuilder: (context, index) {
-        final ex = data.items[index];
-        return buildGenericItemCard<Exercise>(
-          item: ex,
-          leadingIcon: Icons.fitness_center,
-          title: ex.getBasicInfo(),
-          subtitle: '${ex.getDetailInfo()}\n${ex.formatExtraNote<String>("Mức độ: Tiêu chuẩn")}',
-          trailingText: '${ex.getBurnedCalories().toStringAsFixed(0)} kcal',
+  Widget buildMainContent(
+      BuildContext context, EntityCollection<Exercise> data) {
+    return _InteractiveExerciseCatalog(
+      exercises: data.items,
+      onAddExercise: onAddExercise,
+      onSendToWorkout: onSendToWorkout,
+    );
+  }
+}
+
+class _InteractiveExerciseCatalog extends StatefulWidget {
+  final List<Exercise> exercises;
+  final ValueChanged<Exercise> onAddExercise;
+  final ValueChanged<Exercise> onSendToWorkout;
+
+  const _InteractiveExerciseCatalog({
+    required this.exercises,
+    required this.onAddExercise,
+    required this.onSendToWorkout,
+  });
+
+  @override
+  State<_InteractiveExerciseCatalog> createState() =>
+      _InteractiveExerciseCatalogState();
+}
+
+class _InteractiveExerciseCatalogState
+    extends State<_InteractiveExerciseCatalog> {
+  String _searchQuery = '';
+  String _selectedCategory = 'Tất cả';
+
+  final List<String> _categories = const [
+    'Tất cả',
+    'Ngực',
+    'Lưng',
+    'Chân',
+    'Bụng',
+    'Cardio',
+  ];
+
+  List<Exercise> get _filteredExercises {
+    return widget.exercises.where((ex) {
+      final matchesCategory =
+          _selectedCategory == 'Tất cả' || ex.category == _selectedCategory;
+      final matchesSearch =
+          ex.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              ex.description.toLowerCase().contains(_searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    }).toList();
+  }
+
+  void _showAddExerciseDialog() {
+    final nameCtrl = TextEditingController();
+    final descCtrl = TextEditingController();
+    final durationCtrl = TextEditingController(text: '15');
+    final calCtrl = TextEditingController(text: '8.5');
+    final setsCtrl = TextEditingController(text: '3 hiệp x 12 lần');
+    String selectedCat = 'Ngực';
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Thêm Bài Tập Mới'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: nameCtrl,
+                      decoration: const InputDecoration(labelText: 'Tên bài tập'),
+                    ),
+                    TextField(
+                      controller: descCtrl,
+                      decoration: const InputDecoration(labelText: 'Mô tả kỹ thuật'),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedCat,
+                      decoration: const InputDecoration(labelText: 'Nhóm cơ'),
+                      items: _categories
+                          .where((c) => c != 'Tất cả')
+                          .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                          .toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setDialogState(() => selectedCat = val);
+                        }
+                      },
+                    ),
+                    TextField(
+                      controller: setsCtrl,
+                      decoration: const InputDecoration(labelText: 'Số hiệp x Số lần'),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: durationCtrl,
+                            keyboardType: TextInputType.number,
+                            decoration:
+                                const InputDecoration(labelText: 'Thời gian (phút)'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextField(
+                            controller: calCtrl,
+                            keyboardType: TextInputType.number,
+                            decoration:
+                                const InputDecoration(labelText: 'Calo/phút'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Hủy'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () {
+                    if (nameCtrl.text.trim().isEmpty) return;
+                    final newEx = Exercise(
+                      id: 'EX0${widget.exercises.length + 1}',
+                      name: nameCtrl.text.trim(),
+                      description: descCtrl.text.trim().isEmpty
+                          ? 'Bài tập cá nhân tự thiết kế'
+                          : descCtrl.text.trim(),
+                      durationInMinutes: int.tryParse(durationCtrl.text) ?? 15,
+                      caloriesPerMinute: double.tryParse(calCtrl.text) ?? 8.0,
+                      category: selectedCat,
+                      setsAndReps: setsCtrl.text.trim(),
+                    );
+                    widget.onAddExercise(newEx);
+                    Navigator.pop(ctx);
+                  },
+                  child: const Text('Lưu bài tập'),
+                ),
+              ],
+            );
+          },
         );
       },
+    );
+  }
+
+  void _showExerciseDetailModal(Exercise ex) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Colors.teal.withValues(alpha: 0.15),
+                    child: const Icon(Icons.fitness_center, color: Colors.teal),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          ex.getBasicInfo(),
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          ex.getDetailInfo(),
+                          style: const TextStyle(color: Colors.teal),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const Divider(height: 28),
+              Text(
+                ex.formatExtraNote<String>('Giữ nhịp thở đều và kiểm soát chuyển động'),
+                style: const TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Đánh giá độ hiệu quả của bài tập (Review StatefulWidget):',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              ReviewWidget(
+                initialRating: ex.rating,
+                onRatingChanged: (newRating) {
+                  setState(() => ex.rating = newRating);
+                },
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    widget.onSendToWorkout(ex);
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Đã thêm "${ex.name}" vào Buổi tập hôm nay!'),
+                        backgroundColor: Colors.teal,
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.playlist_add_check),
+                  label: const Text('Thêm vào Buổi tập hôm nay'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final list = _filteredExercises;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Thanh tìm kiếm + Nút thêm bài tập
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                onChanged: (val) => setState(() => _searchQuery = val),
+                decoration: InputDecoration(
+                  hintText: 'Tìm kiếm bài tập...',
+                  prefixIcon: const Icon(Icons.search, color: Colors.teal),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            ElevatedButton.icon(
+              onPressed: _showAddExerciseDialog,
+              icon: const Icon(Icons.add),
+              label: const Text('Thêm'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        // Bộ lọc nhóm cơ
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: _categories.map((cat) {
+              final isSelected = _selectedCategory == cat;
+              return Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: ChoiceChip(
+                  label: Text(cat),
+                  selected: isSelected,
+                  selectedColor: Colors.teal,
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.white : null,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                  onSelected: (_) => setState(() => _selectedCategory = cat),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        const SizedBox(height: 14),
+        // Danh sách thẻ bài tập
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: list.length,
+          itemBuilder: (context, index) {
+            final ex = list[index];
+            return Card(
+              elevation: 2,
+              margin: const EdgeInsets.only(bottom: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: ListTile(
+                onTap: () => _showExerciseDetailModal(ex),
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.teal.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.fitness_center, color: Colors.teal),
+                ),
+                title: Text(
+                  ex.getBasicInfo(),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 4),
+                    Text(ex.getDetailInfo()),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: List.generate(
+                        5,
+                        (starIdx) => Icon(
+                          starIdx < ex.rating ? Icons.star : Icons.star_border,
+                          size: 15,
+                          color: Colors.amber,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                trailing: ElevatedButton(
+                  onPressed: () => _showExerciseDetailModal(ex),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal.shade50,
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'Chi tiết',
+                    style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+// StatefulWidget bắt sự kiện đánh giá 5 sao
+class ReviewWidget extends StatefulWidget {
+  final int initialRating;
+  final ValueChanged<int> onRatingChanged;
+
+  const ReviewWidget({
+    super.key,
+    required this.initialRating,
+    required this.onRatingChanged,
+  });
+
+  @override
+  State<ReviewWidget> createState() => _ReviewWidgetState();
+}
+
+class _ReviewWidgetState extends State<ReviewWidget> {
+  late int _rating;
+
+  @override
+  void initState() {
+    super.initState();
+    _rating = widget.initialRating;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(5, (index) {
+            return GestureDetector(
+              onTap: () {
+                setState(() => _rating = index + 1);
+                widget.onRatingChanged(_rating);
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: Icon(
+                  index < _rating ? Icons.star : Icons.star_border,
+                  color: Colors.amber,
+                  size: 36,
+                ),
+              ),
+            );
+          }),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Mức độ hài lòng: $_rating / 5 sao',
+          style: const TextStyle(
+            color: Colors.teal,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 }

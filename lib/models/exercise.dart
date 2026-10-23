@@ -4,23 +4,33 @@ import 'base_entity.dart';
 class Exercise extends BaseEntity<String> {
   final int durationInMinutes;
   final double caloriesPerMinute;
+  final String category; // Nhóm cơ: Ngực, Lưng, Chân, Bụng, Cardio
+  final String setsAndReps; // Ví dụ: 4 hiệp x 12 lần
+  int rating; // Đánh giá từ 1 - 5 sao
+  bool isCompleted;
 
-  const Exercise({
+  Exercise({
     required super.id,
-    required super.name,
-    required super.description,
+    String? name,
+    String? exerciseName,
+    super.description = 'Bài tập thể lực tiêu chuẩn',
     required this.durationInMinutes,
     required this.caloriesPerMinute,
-  });
+    this.category = 'Toàn thân',
+    this.setsAndReps = '3 hiệp x 12 lần',
+    this.rating = 5,
+    this.isCompleted = false,
+  }) : super(name: name ?? exerciseName ?? 'Bài tập');
 
-  // Phương thức tính tổng calo tiêu thụ của bài tập
+  String get exerciseName => name;
+
+  // Thuật toán tính lượng calo đốt cháy của bài tập
   double getBurnedCalories() {
     return durationInMinutes * caloriesPerMinute;
   }
 
-  // Ghi đè phương thức chung từ BaseEntity
   @override
   String getDetailInfo() {
-    return 'Thời lượng: $durationInMinutes phút | Tiêu hao: ${getBurnedCalories().toStringAsFixed(1)} kcal';
+    return '$category • $setsAndReps • ${durationInMinutes}p (${getBurnedCalories().toStringAsFixed(0)} kcal)';
   }
 }
