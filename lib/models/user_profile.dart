@@ -3,28 +3,37 @@ import 'base_entity.dart';
 
 class UserProfile extends BaseEntity<String> {
   final String username;
-  final String password;
-  double weight; // kg
-  double height; // mét
-  int waterGlasses; // Số cốc nước đã uống
+  String password;
+  String displayName;
+  String goalDescription;
+  double weight;
+  double height;
+  int waterGlasses;
 
   UserProfile({
     required super.id,
     required this.username,
     required this.password,
-    required super.name,
-    super.description = 'Mục tiêu: Săn chắc cơ bắp & duy trì thể lực',
+    required String name,
+    String description = 'Mục tiêu: Săn chắc cơ bắp & duy trì thể lực',
     required this.weight,
     required this.height,
     this.waterGlasses = 4,
-  });
+  })  : displayName = name,
+        goalDescription = description,
+        super(name: name, description: description);
+
+  @override
+  String get name => displayName;
+
+  @override
+  String get description => goalDescription;
 
   double get bmiValue {
     if (height <= 0 || weight <= 0) return 0;
     return weight / (height * height);
   }
 
-  // Thuật toán tính BMI và phân loại sức khỏe
   String calculateBMI() {
     if (height <= 0 || weight <= 0) return 'Dữ liệu không hợp lệ';
 
@@ -48,28 +57,26 @@ class UserProfile extends BaseEntity<String> {
     return 'Cân nặng: ${weight}kg | Chiều cao: ${height}m | ${calculateBMI()}';
   }
 
-  // Chuyển đổi đối tượng sang Map để lưu vào Database
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'username': username,
       'password': password,
-      'name': name,
-      'description': description,
+      'name': displayName,
+      'description': goalDescription,
       'weight': weight,
       'height': height,
       'waterGlasses': waterGlasses,
     };
   }
 
-  // Khôi phục đối tượng từ dữ liệu Database
   factory UserProfile.fromMap(Map<String, dynamic> map) {
     return UserProfile(
-      id: map['id'] ?? 'U001',
-      username: map['username'] ?? '',
-      password: map['password'] ?? '',
-      name: map['name'] ?? 'Học viên',
-      description: map['description'] ?? 'Thành viên PNP Fitness',
+      id: map['id']?.toString() ?? 'U001',
+      username: map['username']?.toString() ?? '',
+      password: map['password']?.toString() ?? '',
+      name: map['name']?.toString() ?? 'Học viên',
+      description: map['description']?.toString() ?? 'Thành viên PNP Fitness',
       weight: (map['weight'] as num?)?.toDouble() ?? 65.0,
       height: (map['height'] as num?)?.toDouble() ?? 1.70,
       waterGlasses: (map['waterGlasses'] as num?)?.toInt() ?? 0,

@@ -1,11 +1,9 @@
-// File: lib/screens/auth_screen.dart
+
 import 'package:flutter/material.dart';
 import '../models/user_profile.dart';
 import '../services/database_service.dart';
 
-// ============================================================================
 // 1. MÀN HÌNH ĐĂNG NHẬP (LOGIN SCREEN)
-// ============================================================================
 class LoginScreen extends StatefulWidget {
   final ValueChanged<UserProfile> onLoginSuccess;
 

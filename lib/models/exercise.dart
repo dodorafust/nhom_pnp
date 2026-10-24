@@ -4,9 +4,9 @@ import 'base_entity.dart';
 class Exercise extends BaseEntity<String> {
   final int durationInMinutes;
   final double caloriesPerMinute;
-  final String category; // Nhóm cơ: Ngực, Lưng, Chân, Bụng, Cardio
-  final String setsAndReps; // Ví dụ: 4 hiệp x 12 lần
-  int rating; // Đánh giá từ 1 - 5 sao
+  final String category;
+  final String setsAndReps;
+  int rating;
   bool isCompleted;
 
   Exercise({
@@ -24,7 +24,6 @@ class Exercise extends BaseEntity<String> {
 
   String get exerciseName => name;
 
-  // Thuật toán tính lượng calo đốt cháy của bài tập
   double getBurnedCalories() {
     return durationInMinutes * caloriesPerMinute;
   }
@@ -32,5 +31,57 @@ class Exercise extends BaseEntity<String> {
   @override
   String getDetailInfo() {
     return '$category • $setsAndReps • ${durationInMinutes}p (${getBurnedCalories().toStringAsFixed(0)} kcal)';
+  }
+
+  Exercise copyWith({
+    String? id,
+    String? name,
+    String? description,
+    int? durationInMinutes,
+    double? caloriesPerMinute,
+    String? category,
+    String? setsAndReps,
+    int? rating,
+    bool? isCompleted,
+  }) {
+    return Exercise(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      durationInMinutes: durationInMinutes ?? this.durationInMinutes,
+      caloriesPerMinute: caloriesPerMinute ?? this.caloriesPerMinute,
+      category: category ?? this.category,
+      setsAndReps: setsAndReps ?? this.setsAndReps,
+      rating: rating ?? this.rating,
+      isCompleted: isCompleted ?? this.isCompleted,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'durationInMinutes': durationInMinutes,
+      'caloriesPerMinute': caloriesPerMinute,
+      'category': category,
+      'setsAndReps': setsAndReps,
+      'rating': rating,
+      'isCompleted': isCompleted,
+    };
+  }
+
+  factory Exercise.fromMap(Map<String, dynamic> map) {
+    return Exercise(
+      id: map['id']?.toString() ?? 'EX01',
+      name: map['name']?.toString() ?? 'Bài tập',
+      description: map['description']?.toString() ?? 'Bài tập thể lực',
+      durationInMinutes: (map['durationInMinutes'] as num?)?.toInt() ?? 15,
+      caloriesPerMinute: (map['caloriesPerMinute'] as num?)?.toDouble() ?? 8.0,
+      category: map['category']?.toString() ?? 'Toàn thân',
+      setsAndReps: map['setsAndReps']?.toString() ?? '3 hiệp x 12 lần',
+      rating: (map['rating'] as num?)?.toInt() ?? 5,
+      isCompleted: map['isCompleted'] == true,
+    );
   }
 }

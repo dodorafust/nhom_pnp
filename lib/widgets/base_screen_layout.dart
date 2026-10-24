@@ -8,13 +8,18 @@ abstract class BaseScreenLayout<T> extends StatelessWidget {
   IconData get screenIcon;
   T get screenData;
 
+  // Nhãn gợi ý thao tác trên khối chữ nhật đầu trang
+  String get headerActionLabel => 'Chạm để tùy chỉnh';
+
   List<Widget>? buildAppBarActions(BuildContext context) => null;
 
   Widget buildHeaderContent(BuildContext context, T data);
 
+  // Hàm xử lý khi người dùng bấm vào khối hình chữ nhật ở đầu mỗi trang
+  void onHeaderTap(BuildContext context, T data);
+
   Widget buildMainContent(BuildContext context, T data);
 
-  // Generic method dựng nhanh thẻ thông tin chuẩn Material Design
   Widget buildGenericItemCard<E>({
     required E item,
     required IconData leadingIcon,
@@ -88,40 +93,82 @@ abstract class BaseScreenLayout<T> extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Khối Header kết hợp Card + Stack + Gradient
+            // Khối chữ nhật đầu trang (Header Banner) có InkWell bắt sự kiện onTap
             Card(
               elevation: 4,
               clipBehavior: Clip.antiAlias,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Stack(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.teal.shade800, Colors.teal.shade500],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+              child: InkWell(
+                onTap: () => onHeaderTap(context, data),
+                child: Stack(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.teal.shade800, Colors.teal.shade500],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      padding: const EdgeInsets.all(18.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          buildHeaderContent(context, data),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.touch_app,
+                                      size: 15,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      headerActionLabel,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    padding: const EdgeInsets.all(18.0),
-                    child: buildHeaderContent(context, data),
-                  ),
-                  Positioned(
-                    right: -15,
-                    top: -15,
-                    child: Icon(
-                      screenIcon,
-                      size: 100,
-                      color: Colors.white.withValues(alpha: 0.08),
+                    Positioned(
+                      right: -15,
+                      top: -15,
+                      child: Icon(
+                        screenIcon,
+                        size: 100,
+                        color: Colors.white.withValues(alpha: 0.08),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 18),
-            // Khối Nội dung chính của từng màn hình
             buildMainContent(context, data),
           ],
         ),

@@ -29,20 +29,23 @@ class _FitnessAppState extends State<FitnessApp> {
   @override
   void initState() {
     super.initState();
-    _loadSavedSession();
+    _initializeApp();
   }
 
-  Future<void> _loadSavedSession() async {
+  Future<void> _initializeApp() async {
     final savedUser = await DatabaseService.getCurrentLoggedInUser();
+    final savedDark = await DatabaseService.loadDarkMode();
     if (!mounted) return;
     setState(() {
       _currentUser = savedUser;
+      _isDarkMode = savedDark;
       _isCheckingSession = false;
     });
   }
 
-  void _toggleTheme() {
+  Future<void> _toggleTheme() async {
     setState(() => _isDarkMode = !_isDarkMode);
+    await DatabaseService.saveDarkMode(_isDarkMode);
   }
 
   Future<void> _handleLogout() async {
@@ -72,10 +75,13 @@ class _FitnessAppState extends State<FitnessApp> {
       ),
       home: _isCheckingSession
           ? const Scaffold(
-              body: Center(child: CircularProgressIndicator(color: Colors.teal)),
+              body: Center(
+                child: CircularProgressIndicator(color: Colors.teal),
+              ),
             )
           : _currentUser != null
               ? MainNavigator(
+                  key: ValueKey(_currentUser!.username),
                   currentUser: _currentUser!,
                   isDarkMode: _isDarkMode,
                   onToggleTheme: _toggleTheme,
@@ -110,96 +116,156 @@ class MainNavigator extends StatefulWidget {
 
 class _MainNavigatorState extends State<MainNavigator> {
   int _selectedIndex = 0;
+  bool _isLoadingData = true;
 
-  final List<Exercise> _allExercises = [
-    Exercise(
-      id: 'EX01',
-      name: 'Goblet Squat',
-      description: 'Tập trung phát triển cơ đùi trước và cơ mông',
-      durationInMinutes: 15,
-      caloriesPerMinute: 9.5,
-      category: 'Chân',
-      setsAndReps: '4 hiệp x 12 lần',
-    ),
-    Exercise(
-      id: 'EX02',
-      name: 'Hít đất nâng cao',
-      description: 'Phát triển cơ ngực, vai trước và tay sau',
-      durationInMinutes: 12,
-      caloriesPerMinute: 8.5,
-      category: 'Ngực',
-      setsAndReps: '3 hiệp x 15 lần',
-    ),
-    Exercise(
-      id: 'EX03',
-      name: 'Kéo tạ đơn một tay',
-      description: 'Siết cơ lưng xô và cải thiện tư thế cột sống',
-      durationInMinutes: 15,
-      caloriesPerMinute: 8.0,
-      category: 'Lưng',
-      setsAndReps: '3 hiệp x 12 lần',
-    ),
-    Exercise(
-      id: 'EX04',
-      name: 'Plank siết cơ bụng',
-      description: 'Tăng sức bền cơ lõi (Core) và giảm mỡ bụng',
-      durationInMinutes: 10,
-      caloriesPerMinute: 6.5,
-      category: 'Bụng',
-      setsAndReps: '3 hiệp x 60 giây',
-    ),
-    Exercise(
-      id: 'EX05',
-      name: 'Chạy bộ HIIT đốt mỡ',
-      description: 'Tăng nhịp tim và đốt cháy năng lượng toàn thân',
-      durationInMinutes: 25,
-      caloriesPerMinute: 11.0,
-      category: 'Cardio',
-      setsAndReps: '25 phút liên tục',
-    ),
-  ];
-
-  late final WorkoutSession _currentSession;
+  List<Exercise> _allExercises = [];
+  late WorkoutSession _currentSession;
+  List<String> _workoutHistory = [];
 
   @override
   void initState() {
     super.initState();
-    _currentSession = WorkoutSession(
-      id: 'SS001',
-      name: 'Buổi tập Toàn thân (Full Body)',
-      description: 'Lộ trình đốt mỡ và tăng sức bền trong ngày',
-      exercises: [
-        _allExercises[0],
-        _allExercises[1],
-        _allExercises[3],
-        _allExercises[4],
-      ],
+    _loadPersistentData();
+  }
+
+  Future<void> _loadPersistentData() async {
+    final exercises = await DatabaseService.loadExercises();
+    final session = await DatabaseService.loadWorkoutSession(
+      widget.currentUser.username,
+      exercises,
+    );
+    final history = await DatabaseService.loadWorkoutHistory(
+      widget.currentUser.username,
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _allExercises = exercises;
+      _currentSession = session;
+      _workoutHistory = history;
+      _isLoadingData = false;
+    });
+  }
+
+  Future<void> _persistExercises() async {
+    await DatabaseService.saveExercises(_allExercises);
+  }
+
+  Future<void> _persistSession() async {
+    await DatabaseService.saveWorkoutSession(
+      widget.currentUser.username,
+      _currentSession,
     );
   }
 
-  void _onItemTapped(int index) {
-    setState(() => _selectedIndex = index);
+  Future<void> _persistHistory() async {
+    await DatabaseService.saveWorkoutHistory(
+      widget.currentUser.username,
+      _workoutHistory,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoadingData) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: Colors.teal)),
+      );
+    }
+
     final screens = <Widget>[
       ExerciseScreen(
         exercises: _allExercises,
         onAddExercise: (newEx) {
           setState(() => _allExercises.add(newEx));
+          _persistExercises();
+        },
+        onUpdateExercise: (updatedEx) {
+          setState(() {
+            final idx = _allExercises.indexWhere((e) => e.id == updatedEx.id);
+            if (idx != -1) _allExercises[idx] = updatedEx;
+          });
+          _persistExercises();
+        },
+        onDeleteExercise: (exId) {
+          setState(() {
+            _allExercises.removeWhere((e) => e.id == exId);
+            _currentSession.exercises.removeWhere((e) => e.id == exId);
+          });
+          _persistExercises();
+          _persistSession();
         },
         onSendToWorkout: (ex) {
           setState(() {
-            if (!_currentSession.exercises.contains(ex)) {
-              _currentSession.addExercise(ex);
+            final exists =
+                _currentSession.exercises.any((item) => item.id == ex.id);
+            if (!exists) {
+              _currentSession.addExercise(ex.copyWith(isCompleted: false));
             }
           });
+          _persistSession();
+        },
+        onApplyChallengePlan: (planName, selectedList) {
+          setState(() {
+            _currentSession = WorkoutSession(
+              id: _currentSession.id,
+              name: planName,
+              description:
+                  'Áp dụng từ Thử thách 30 ngày (${selectedList.length} bài tập)',
+              elapsedSeconds: 0,
+              exercises: selectedList
+                  .map((e) => e.copyWith(isCompleted: false))
+                  .toList(),
+            );
+            _selectedIndex = 1; // Chuyển ngay sang Tab Buổi tập
+          });
+          _persistSession();
+        },
+        onResetDefaultExercises: () {
+          setState(() {
+            _allExercises = DatabaseService.getDefaultExercises();
+          });
+          _persistExercises();
         },
       ),
       WorkoutScreen(
         currentSession: _currentSession,
-        onSessionUpdated: () => setState(() {}),
+        allCatalogExercises: _allExercises,
+        workoutHistory: _workoutHistory,
+        onSessionChanged: () {
+          setState(() {});
+          _persistSession();
+        },
+        onEditSessionInfo: (newName, newDesc) {
+          setState(() {
+            _currentSession = WorkoutSession(
+              id: _currentSession.id,
+              name: newName,
+              description: newDesc,
+              date: _currentSession.date,
+              elapsedSeconds: _currentSession.elapsedSeconds,
+              exercises: _currentSession.exercises,
+            );
+          });
+          _persistSession();
+        },
+        onResetSessionProgress: () {
+          setState(() {
+            for (final ex in _currentSession.exercises) {
+              ex.isCompleted = false;
+            }
+            _currentSession.elapsedSeconds = 0;
+          });
+          _persistSession();
+        },
+        onAddHistoryLog: (log) {
+          setState(() => _workoutHistory.insert(0, log));
+          _persistHistory();
+        },
+        onDeleteHistoryLog: (idx) {
+          setState(() => _workoutHistory.removeAt(idx));
+          _persistHistory();
+        },
       ),
       ProfileScreen(
         userProfile: widget.currentUser,
@@ -211,7 +277,11 @@ class _MainNavigatorState extends State<MainNavigator> {
     ];
 
     return Scaffold(
-      body: screens.elementAt(_selectedIndex),
+      // Dùng IndexedStack để giữ nguyên trạng thái và bộ đếm giờ khi chuyển qua lại giữa 3 tab
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: screens,
+      ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -229,7 +299,7 @@ class _MainNavigatorState extends State<MainNavigator> {
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.teal,
-        onTap: _onItemTapped,
+        onTap: (index) => setState(() => _selectedIndex = index),
       ),
     );
   }

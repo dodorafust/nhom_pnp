@@ -21,10 +21,13 @@ class ProfileScreen extends BaseScreenLayout<UserProfile> {
   });
 
   @override
-  String get screenTitle => 'Hồ sơ Cá nhân (Phát)';
+  String get screenTitle => 'Hồ sơ Cá nhân ';
 
   @override
   IconData get screenIcon => Icons.person;
+
+  @override
+  String get headerActionLabel => 'Chỉnh sửa Hồ sơ & Mục tiêu';
 
   @override
   UserProfile get screenData => userProfile;
@@ -101,13 +104,93 @@ class ProfileScreen extends BaseScreenLayout<UserProfile> {
               ),
               const SizedBox(height: 4),
               Text(
-                data.formatExtraNote<String>('Tài khoản: @${data.username}'),
+                data.formatExtraNote<String>(
+                  'Tài khoản: @${data.username} • ${data.calculateBMI()}',
+                ),
                 style: const TextStyle(color: Colors.white70, fontSize: 13),
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  @override
+  void onHeaderTap(BuildContext context, UserProfile data) {
+    final nameCtrl = TextEditingController(text: data.displayName);
+    final goalCtrl = TextEditingController(text: data.goalDescription);
+    final passCtrl = TextEditingController(text: data.password);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Chỉnh sửa Hồ sơ Cá nhân'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Họ và tên hiển thị',
+                  prefixIcon: Icon(Icons.badge, color: Colors.teal),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: goalCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Mục tiêu tập luyện cá nhân',
+                  prefixIcon: Icon(Icons.flag, color: Colors.teal),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: passCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Mật khẩu đăng nhập',
+                  prefixIcon: Icon(Icons.lock, color: Colors.teal),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.teal,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              if (nameCtrl.text.trim().isNotEmpty) {
+                data.displayName = nameCtrl.text.trim();
+              }
+              if (goalCtrl.text.trim().isNotEmpty) {
+                data.goalDescription = goalCtrl.text.trim();
+              }
+              if (passCtrl.text.trim().isNotEmpty) {
+                data.password = passCtrl.text.trim();
+              }
+              await DatabaseService.updateUserProfile(data);
+              onProfileUpdated();
+              if (!ctx.mounted) return;
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Đã cập nhật hồ sơ cá nhân vào Database!'),
+                  backgroundColor: Colors.teal,
+                ),
+              );
+            },
+            child: const Text('Lưu hồ sơ'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -185,6 +268,7 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
       widget.profile.waterGlasses = nextVal;
     });
     await DatabaseService.updateUserProfile(widget.profile);
+    widget.onProfileUpdated();
   }
 
   @override
@@ -199,9 +283,9 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // 1. Khối công cụ tính BMI
         Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           elevation: 2,
           child: Padding(
             padding: const EdgeInsets.all(18.0),
@@ -214,7 +298,8 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
                     SizedBox(width: 8),
                     Text(
                       'Công cụ tính chỉ số khối cơ thể (BMI)',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ],
                 ),
@@ -224,8 +309,9 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
                     Expanded(
                       child: TextField(
                         controller: _heightController,
-                        keyboardType:
-                            const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         decoration: InputDecoration(
                           labelText: 'Chiều cao (m)',
                           prefixIcon:
@@ -240,8 +326,9 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
                     Expanded(
                       child: TextField(
                         controller: _weightController,
-                        keyboardType:
-                            const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         decoration: InputDecoration(
                           labelText: 'Cân nặng (kg)',
                           prefixIcon:
@@ -302,10 +389,9 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
           ),
         ),
         const SizedBox(height: 16),
-
-        // 2. Khối theo dõi lượng nước uống trong ngày
         Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           elevation: 2,
           child: Padding(
             padding: const EdgeInsets.all(18.0),
@@ -318,7 +404,8 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
                     const SizedBox(width: 8),
                     const Text(
                       'Theo dõi lượng nước uống',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     const Spacer(),
                     Text(
@@ -364,8 +451,6 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
           ),
         ),
         const SizedBox(height: 16),
-
-        // 3. Nút Đăng xuất tài khoản nổi bật ở cuối trang Hồ sơ
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
