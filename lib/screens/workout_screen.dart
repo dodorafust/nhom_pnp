@@ -1,6 +1,8 @@
 // File: lib/screens/workout_screen.dart
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+
 import '../models/exercise.dart';
 import '../models/workout_session.dart';
 import '../widgets/base_screen_layout.dart';
@@ -28,7 +30,7 @@ class WorkoutScreen extends BaseScreenLayout<WorkoutSession> {
   });
 
   @override
-  String get screenTitle => 'Quản lý Buổi tập ';
+  String get screenTitle => 'Quản lý Buổi tập';
 
   @override
   IconData get screenIcon => Icons.fitness_center;
@@ -69,27 +71,46 @@ class WorkoutScreen extends BaseScreenLayout<WorkoutSession> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Tùy chỉnh Buổi tập hôm nay'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ), // Bo góc popup
+        title: const Text(
+          'Tùy chỉnh Buổi tập',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const SizedBox(height: 8),
               TextField(
                 controller: nameCtrl,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Tên buổi tập',
-                  prefixIcon: Icon(Icons.edit, color: Colors.teal),
+                  prefixIcon: const Icon(Icons.edit, color: Colors.teal),
+                  // Chuyển sang viền bo góc hiện đại
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.withValues(alpha: 0.05),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16), // Tăng khoảng cách giữa 2 ô
               TextField(
                 controller: descCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Mô tả / Mục tiêu buổi tập',
-                  prefixIcon: Icon(Icons.flag, color: Colors.teal),
+                maxLines: 2, // Cho phép mô tả dài xuống dòng
+                decoration: InputDecoration(
+                  labelText: 'Mô tả / Mục tiêu',
+                  prefixIcon: const Icon(Icons.flag, color: Colors.teal),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.withValues(alpha: 0.05),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
@@ -98,17 +119,25 @@ class WorkoutScreen extends BaseScreenLayout<WorkoutSession> {
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text(
-                          'Đã đặt lại tiến độ buổi tập về 0 để bắt đầu lượt mới!',
-                        ),
+                        content: Text('Đã đặt lại tiến độ buổi tập về 0!'),
                         backgroundColor: Colors.teal,
                       ),
                     );
                   },
                   icon: const Icon(Icons.restart_alt, color: Colors.orange),
                   label: const Text(
-                    'Đặt lại toàn bộ bài tập về Chưa tập',
-                    style: TextStyle(color: Colors.orange),
+                    'Đặt lại toàn bộ bài tập',
+                    style: TextStyle(
+                      color: Colors.orange,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.orange),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                 ),
               ),
@@ -118,19 +147,20 @@ class WorkoutScreen extends BaseScreenLayout<WorkoutSession> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Đóng'),
+            child: const Text('Đóng', style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.teal,
               foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
             onPressed: () {
               if (nameCtrl.text.trim().isNotEmpty) {
-                onEditSessionInfo(
-                  nameCtrl.text.trim(),
-                  descCtrl.text.trim(),
-                );
+                onEditSessionInfo(nameCtrl.text.trim(), descCtrl.text.trim());
               }
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
@@ -140,7 +170,10 @@ class WorkoutScreen extends BaseScreenLayout<WorkoutSession> {
                 ),
               );
             },
-            child: const Text('Lưu thay đổi'),
+            child: const Text(
+              'Lưu thay đổi',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -238,8 +271,9 @@ class _WorkoutSessionTrackerState extends State<_WorkoutSessionTracker> {
   void _saveWorkoutHistory() {
     final completed = widget.session.completedCount;
     final total = widget.session.exercises.length;
-    final burned =
-        widget.session.calculateCompletedCalories().toStringAsFixed(0);
+    final burned = widget.session.calculateCompletedCalories().toStringAsFixed(
+      0,
+    );
     final duration = _formatDuration(widget.session.elapsedSeconds);
     final now = DateTime.now();
     final timeStr =
@@ -271,7 +305,7 @@ class _WorkoutSessionTrackerState extends State<_WorkoutSessionTracker> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Chọn bài tập thêm vào Buổi tập hôm nay',
+                'Chọn bài tập thêm vào Buổi tập',
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
@@ -281,8 +315,9 @@ class _WorkoutSessionTrackerState extends State<_WorkoutSessionTracker> {
                   itemCount: widget.allCatalogExercises.length,
                   itemBuilder: (context, index) {
                     final ex = widget.allCatalogExercises[index];
-                    final alreadyIn = widget.session.exercises
-                        .any((item) => item.id == ex.id);
+                    final alreadyIn = widget.session.exercises.any(
+                      (item) => item.id == ex.id,
+                    );
                     return ListTile(
                       leading: const Icon(
                         Icons.fitness_center,
@@ -352,8 +387,10 @@ class _WorkoutSessionTrackerState extends State<_WorkoutSessionTracker> {
                     style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.teal.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(12),
@@ -409,34 +446,48 @@ class _WorkoutSessionTrackerState extends State<_WorkoutSessionTracker> {
                 borderRadius: BorderRadius.circular(6),
               ),
               const SizedBox(height: 16),
+              // Đã bọc Expanded để tránh tràn chữ
               Row(
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: _toggleTimer,
                       icon: Icon(_isRunning ? Icons.pause : Icons.play_arrow),
-                      label: Text(_isRunning ? 'Tạm dừng' : 'Bắt đầu tập'),
+                      label: Text(
+                        _isRunning ? 'Tạm dừng' : 'Bắt đầu',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            _isRunning ? Colors.amber.shade700 : Colors.teal,
+                        backgroundColor: _isRunning
+                            ? Colors.amber.shade700
+                            : Colors.teal,
                         foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 4),
                   IconButton(
                     onPressed: _resetTimer,
                     icon: const Icon(Icons.refresh, color: Colors.white70),
                     tooltip: 'Đặt lại đồng hồ',
                   ),
                   const SizedBox(width: 4),
-                  ElevatedButton.icon(
-                    onPressed: _completeNextExercise,
-                    icon: const Icon(Icons.check),
-                    label: const Text('Hoàn tất 1 bài'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.tealAccent.shade700,
-                      foregroundColor: Colors.black87,
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _completeNextExercise,
+                      icon: const Icon(Icons.check),
+                      label: const Text(
+                        'Xong 1 bài',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.tealAccent.shade700,
+                        foregroundColor: Colors.black87,
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                      ),
                     ),
                   ),
                 ],
@@ -446,36 +497,38 @@ class _WorkoutSessionTrackerState extends State<_WorkoutSessionTracker> {
         ),
         const SizedBox(height: 18),
 
-        // Thanh công cụ danh sách bài tập trong buổi
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Bài tập trong buổi hôm nay:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            Row(
-              children: [
-                TextButton.icon(
-                  onPressed: _showAddExerciseToSessionSheet,
-                  icon: const Icon(Icons.add_circle_outline,
-                      size: 18, color: Colors.teal),
-                  label: const Text(
-                    'Thêm bài',
-                    style: TextStyle(color: Colors.teal),
-                  ),
+        // Thanh công cụ được bọc trong SingleChildScrollView để cuộn ngang nếu hẹp
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              const Text(
+                'Bài tập trong buổi hôm nay:',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(width: 8),
+              TextButton.icon(
+                onPressed: _showAddExerciseToSessionSheet,
+                icon: const Icon(
+                  Icons.add_circle_outline,
+                  size: 18,
+                  color: Colors.teal,
                 ),
-                TextButton.icon(
-                  onPressed: _saveWorkoutHistory,
-                  icon: const Icon(Icons.save, size: 18, color: Colors.teal),
-                  label: const Text(
-                    'Lưu lịch sử',
-                    style: TextStyle(color: Colors.teal),
-                  ),
+                label: const Text(
+                  'Thêm bài',
+                  style: TextStyle(color: Colors.teal),
                 ),
-              ],
-            ),
-          ],
+              ),
+              TextButton.icon(
+                onPressed: _saveWorkoutHistory,
+                icon: const Icon(Icons.save, size: 18, color: Colors.teal),
+                label: const Text(
+                  'Lưu lịch sử',
+                  style: TextStyle(color: Colors.teal),
+                ),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 8),
         if (widget.session.exercises.isEmpty)
@@ -483,9 +536,7 @@ class _WorkoutSessionTrackerState extends State<_WorkoutSessionTracker> {
             child: Padding(
               padding: EdgeInsets.all(20.0),
               child: Center(
-                child: Text(
-                  'Chưa có bài tập nào. Hãy bấm "Thêm bài" hoặc chọn từ Tab Bài tập!',
-                ),
+                child: Text('Chưa có bài tập nào. Hãy bấm "Thêm bài"!'),
               ),
             ),
           )
@@ -512,8 +563,9 @@ class _WorkoutSessionTrackerState extends State<_WorkoutSessionTracker> {
                   ex.name,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    decoration:
-                        ex.isCompleted ? TextDecoration.lineThrough : null,
+                    decoration: ex.isCompleted
+                        ? TextDecoration.lineThrough
+                        : null,
                   ),
                 ),
                 subtitle: Text(
@@ -543,20 +595,23 @@ class _WorkoutSessionTrackerState extends State<_WorkoutSessionTracker> {
         ),
         const SizedBox(height: 8),
         ...widget.workoutHistory.asMap().entries.map(
-              (entry) => Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  dense: true,
-                  leading: const Icon(Icons.history, color: Colors.teal),
-                  title: Text(entry.value),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline,
-                        size: 18, color: Colors.redAccent),
-                    onPressed: () => widget.onDeleteHistoryLog(entry.key),
-                  ),
+          (entry) => Card(
+            margin: const EdgeInsets.only(bottom: 8),
+            child: ListTile(
+              dense: true,
+              leading: const Icon(Icons.history, color: Colors.teal),
+              title: Text(entry.value),
+              trailing: IconButton(
+                icon: const Icon(
+                  Icons.delete_outline,
+                  size: 18,
+                  color: Colors.redAccent,
                 ),
+                onPressed: () => widget.onDeleteHistoryLog(entry.key),
               ),
             ),
+          ),
+        ),
       ],
     );
   }

@@ -1,5 +1,6 @@
 // File: lib/screens/profile_screen.dart
 import 'package:flutter/material.dart';
+
 import '../models/user_profile.dart';
 import '../services/database_service.dart';
 import '../widgets/base_screen_layout.dart';
@@ -36,25 +37,47 @@ class ProfileScreen extends BaseScreenLayout<UserProfile> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Xác nhận Đăng xuất'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ), // Thêm dòng này
+        title: const Text(
+          'Xác nhận Đăng xuất',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
         content: Text(
           'Bạn có chắc chắn muốn đăng xuất khỏi tài khoản "${userProfile.username}" không?',
+          style: const TextStyle(fontSize: 15),
         ),
+        actionsPadding: const EdgeInsets.only(
+          right: 20,
+          bottom: 16,
+        ), // Tạo khoảng thở cho nút
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Hủy'),
+            child: const Text(
+              'Hủy',
+              style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold),
+            ),
           ),
+          const SizedBox(width: 8),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.redAccent,
               foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             ),
             onPressed: () {
               Navigator.pop(ctx);
               onLogout();
             },
-            child: const Text('Đăng xuất'),
+            child: const Text(
+              'Đăng xuất',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -119,7 +142,9 @@ class ProfileScreen extends BaseScreenLayout<UserProfile> {
   @override
   void onHeaderTap(BuildContext context, UserProfile data) {
     final nameCtrl = TextEditingController(text: data.displayName);
-    final goalCtrl = TextEditingController(text: data.goalDescription);
+    final goalCtrl = TextEditingController(
+      text: data.goalDescription,
+    ); // Đã khai báo là goalCtrl
     final passCtrl = TextEditingController(text: data.password);
 
     showDialog(
@@ -131,26 +156,42 @@ class ProfileScreen extends BaseScreenLayout<UserProfile> {
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
-                controller: nameCtrl,
-                decoration: const InputDecoration(
+                controller: nameCtrl, // Controller họ tên
+                decoration: InputDecoration(
                   labelText: 'Họ và tên hiển thị',
-                  prefixIcon: Icon(Icons.badge, color: Colors.teal),
+                  prefixIcon: const Icon(Icons.badge, color: Colors.teal),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.withValues(alpha: 0.05),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               TextField(
-                controller: goalCtrl,
-                decoration: const InputDecoration(
+                controller: goalCtrl, // ĐÃ SỬA: Đổi từ descCtrl thành goalCtrl
+                decoration: InputDecoration(
                   labelText: 'Mục tiêu tập luyện cá nhân',
-                  prefixIcon: Icon(Icons.flag, color: Colors.teal),
+                  prefixIcon: const Icon(Icons.flag, color: Colors.teal),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.withValues(alpha: 0.05),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               TextField(
-                controller: passCtrl,
-                decoration: const InputDecoration(
+                controller: passCtrl, // Controller mật khẩu
+                obscureText: true,
+                decoration: InputDecoration(
                   labelText: 'Mật khẩu đăng nhập',
-                  prefixIcon: Icon(Icons.lock, color: Colors.teal),
+                  prefixIcon: const Icon(Icons.lock, color: Colors.teal),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.withValues(alpha: 0.05),
                 ),
               ),
             ],
@@ -228,10 +269,12 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
   @override
   void initState() {
     super.initState();
-    _heightController =
-        TextEditingController(text: widget.profile.height.toString());
-    _weightController =
-        TextEditingController(text: widget.profile.weight.toString());
+    _heightController = TextEditingController(
+      text: widget.profile.height.toString(),
+    );
+    _weightController = TextEditingController(
+      text: widget.profile.weight.toString(),
+    );
     _bmiResult = widget.profile.calculateBMI();
   }
 
@@ -284,8 +327,9 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Card(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           elevation: 2,
           child: Padding(
             padding: const EdgeInsets.all(18.0),
@@ -298,8 +342,10 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
                     SizedBox(width: 8),
                     Text(
                       'Công cụ tính chỉ số khối cơ thể (BMI)',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                   ],
                 ),
@@ -314,8 +360,10 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
                         ),
                         decoration: InputDecoration(
                           labelText: 'Chiều cao (m)',
-                          prefixIcon:
-                              const Icon(Icons.height, color: Colors.teal),
+                          prefixIcon: const Icon(
+                            Icons.height,
+                            color: Colors.teal,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -331,8 +379,10 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
                         ),
                         decoration: InputDecoration(
                           labelText: 'Cân nặng (kg)',
-                          prefixIcon:
-                              const Icon(Icons.scale, color: Colors.teal),
+                          prefixIcon: const Icon(
+                            Icons.scale,
+                            color: Colors.teal,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -390,8 +440,9 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
         ),
         const SizedBox(height: 16),
         Card(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           elevation: 2,
           child: Padding(
             padding: const EdgeInsets.all(18.0),
@@ -404,8 +455,10 @@ class _InteractiveProfileBodyState extends State<_InteractiveProfileBody> {
                     const SizedBox(width: 8),
                     const Text(
                       'Theo dõi lượng nước uống',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                     const Spacer(),
                     Text(

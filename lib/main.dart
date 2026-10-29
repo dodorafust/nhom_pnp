@@ -1,5 +1,7 @@
 // File: lib/main.dart
 import 'package:flutter/material.dart';
+import 'package:device_frame/device_frame.dart';
+
 import 'models/exercise.dart';
 import 'models/user_profile.dart';
 import 'models/workout_session.dart';
@@ -11,7 +13,47 @@ import 'services/database_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const FitnessApp());
+  // 2. Chạy MockupApp (chứa khung điện thoại) thay vì chạy thẳng FitnessApp
+  runApp(const MockupApp());
+}
+
+class MockupApp extends StatelessWidget {
+  const MockupApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: Colors.grey.shade900,
+        body: Center(
+          // 1. Sử dụng Padding để tạo khoảng cách an toàn so với viền màn hình
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: 24.0,
+              horizontal: 16.0,
+            ),
+            // 2. FittedBox giúp khung điện thoại tự động thu nhỏ lại để vừa khít màn hình máy tính
+            child: FittedBox(
+              fit: BoxFit.contain, // Không cho phép cắt xén (clip), bắt buộc thu nhỏ để thấy toàn bộ
+              child: SizedBox(
+                // 3. Ép cứng kích thước chuẩn của 1 chiếc iPhone 13 Pro Max (hoặc tỷ lệ chuẩn điện thoại)
+                width: 428.0,
+                height: 926.0,
+                child: DeviceFrame(
+                  device: Devices.ios.iPhone13ProMax, // Khung viền iPhone
+                  isFrameVisible: true,
+                  orientation: Orientation.portrait,
+                  screen:
+                      const FitnessApp(), // Nhét ứng dụng thật của bạn vào đây
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class FitnessApp extends StatefulWidget {
@@ -80,18 +122,18 @@ class _FitnessAppState extends State<FitnessApp> {
               ),
             )
           : _currentUser != null
-              ? MainNavigator(
-                  key: ValueKey(_currentUser!.username),
-                  currentUser: _currentUser!,
-                  isDarkMode: _isDarkMode,
-                  onToggleTheme: _toggleTheme,
-                  onLogout: _handleLogout,
-                )
-              : LoginScreen(
-                  onLoginSuccess: (loggedInUser) {
-                    setState(() => _currentUser = loggedInUser);
-                  },
-                ),
+          ? MainNavigator(
+              key: ValueKey(_currentUser!.username),
+              currentUser: _currentUser!,
+              isDarkMode: _isDarkMode,
+              onToggleTheme: _toggleTheme,
+              onLogout: _handleLogout,
+            )
+          : LoginScreen(
+              onLoginSuccess: (loggedInUser) {
+                setState(() => _currentUser = loggedInUser);
+              },
+            ),
     );
   }
 }
@@ -197,8 +239,9 @@ class _MainNavigatorState extends State<MainNavigator> {
         },
         onSendToWorkout: (ex) {
           setState(() {
-            final exists =
-                _currentSession.exercises.any((item) => item.id == ex.id);
+            final exists = _currentSession.exercises.any(
+              (item) => item.id == ex.id,
+            );
             if (!exists) {
               _currentSession.addExercise(ex.copyWith(isCompleted: false));
             }
@@ -278,24 +321,15 @@ class _MainNavigatorState extends State<MainNavigator> {
 
     return Scaffold(
       // Dùng IndexedStack để giữ nguyên trạng thái và bộ đếm giờ khi chuyển qua lại giữa 3 tab
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: screens,
-      ),
+      body: IndexedStack(index: _selectedIndex, children: screens),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: 'Bài tập',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Bài tập'),
           BottomNavigationBarItem(
             icon: Icon(Icons.fitness_center),
             label: 'Buổi tập',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Hồ sơ',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Hồ sơ'),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.teal,
